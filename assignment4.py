@@ -1,4 +1,4 @@
-# Name this file assignment4.py when you submit
+
 
 import math
 import os
@@ -9,57 +9,77 @@ class bag_of_words_model:
         self.directory = directory 
 
     def tf_idf(self, document_filepath):
-       
-        vocabulary = set()
-        for file_name in os.listdir(self.directory):
-            if file_name.endswith(".txt"):
-                file_path = os.path.join(self.directory, file_name)
-                with open(file_path, 'r', encoding='utf-8') as f:
+       # put all the unqiue words in a  set
+        givenwords = set()
+        for i in os.listdir(self.directory):
+            if ".txt" in i[-4:]:
+                file_path = os.path.join(self.directory, i)
+                with open(file_path, 'r') as f:
                     words = f.read().strip().lower().split()
-                    vocabulary.update(words)
-        vocabulary = sorted(vocabulary)
-
-       
-        total_docs = len([file for file in os.listdir(self.directory) if file.endswith(".txt")])
+                    givenwords.update(words)
+        givenwords = sorted(givenwords)
+    #check if given file has txt
+        total_txt_files = 0
+        for i in os.listdir(self.directory):
+            if ".txt" in i[-4:]:
+                total_txt_files += 1
+        total_docs = total_txt_files
+    #count the total number of text files
         idf = {}
-        for word in vocabulary:
-            doc_count = 0
-            for file_name in os.listdir(self.directory):
-                if file_name.endswith(".txt"):
-                    file_path = os.path.join(self.directory, file_name)
+        for phrase in givenwords:
+            occurance = 0
+            for i in os.listdir(self.directory):
+                if ".txt" in i[-4:]:
+                    file_path = os.path.join(self.directory, i)
                     with open(file_path, 'r') as f:
-                        if word in f.read().lower().split():
-                            doc_count += 1
-            idf[word] = math.log2(total_docs / doc_count) if doc_count > 0 else 0
+                        if phrase in f.read().lower().split():
+                            occurance += 1
+            #idf formula
+            idf[phrase] = math.log2(total_docs / occurance) 
 
+ 
         with open(document_filepath, 'r') as f:
-            words = f.read().strip().lower().split()
-        tf = {}
-        total_words = len(words)
-        for word in words:
-            tf[word] = tf.get(word, 0) + 1
-        for word in tf:
-            tf[word] /= total_words
+            file= f.read()
+            file = file.strip()
+            file =  file.split()
+            words = file
 
-        # Calculate TF-IDF vector
-        tf_idf_vector = [
-            tf.get(word, 0) * idf.get(word, 0) for word in vocabulary
-        ]
-        return tf_idf_vector
+        termfreq = {}
+    #get term frequency for the words in teh doc
+        for phrase in words:
+            termfreq[phrase] = termfreq.get(phrase, 0) + 1
+        for phrase in termfreq:
+            termfreq[phrase] /= len(words)
 
-    def predict(self, document_filepath, weights_filepath):
+        v = []
+        for phrase in givenwords:
+            tfvalue = termfreq.get(phrase, 0)  
+            idfvalue = idf.get(phrase, 0)  
+            v.append(tfvalue * idfvalue)  
+
+        return v
+
+    def predict(self, document_filepath, weights):
        
-        tf_idf_vector = self.tf_idf(document_filepath)
+        v = self.tf_idf(document_filepath)
+        with open(weights, 'r') as f:
+            file_content = f.read()
+            file_content = file_content.strip()
+            file_content = file_content.split(",")
+            weights = []
+            for i in file_content:
+                weights.append(float(i))
+        counter = 0
+        for i in range(len(weights)):
+            tf_idf_value = v[i]
+            weight_value = weights[i]
+            
+            counter += tf_idf_value * weight_value
 
-        
-        with open(weights_filepath, 'r', encoding='utf-8') as f:
-            weights = [float(w) for w in f.read().strip().split(",")]
-
-        z = sum(tf_idf_vector[i] * weights[i] for i in range(len(weights)))
-
-        prediction = 1 / (1 + math.exp(-z))
+        prediction = 1 / (1 + math.exp(-counter))
         return prediction
-
+    
+# USED LLM FOR GENERAL CONCEPTS ON tf_idf PYTHON CODE and how to loop through an os as permission given in course outline.
 
 
 
@@ -69,9 +89,9 @@ def main():
     weights_filepath = r"C:\Users\haroo\Desktop\AIA4\Examples_files\Examples\Example2\weights.txt"
     model = bag_of_words_model(training_directory)
 
-    tf_idf_vector = model.tf_idf(test_document_path)
-    print("TF-IDF Vector:", tf_idf_vector)
+    v = model.tf_idf(test_document_path)
+    print("V:", v)
 
     prediction = model.predict(test_document_path, weights_filepath)
-    print("Final Prediction:", prediction)
+    print("Prediction:", prediction)
 main()
