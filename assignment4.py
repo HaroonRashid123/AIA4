@@ -60,7 +60,7 @@ class bag_of_words_model:
         return v
 
     def predict(self, document_filepath, weights):
-       
+       #get weights data to help compute the prediction
         v = self.tf_idf(document_filepath)
         with open(weights, 'r') as f:
             file_content = f.read()
