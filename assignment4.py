@@ -7,7 +7,7 @@ class bag_of_words_model:
 
     def __init__(self, directory):
         self.directory = directory 
-
+#This function computes the tf_idf for a document
     def tf_idf(self, document_filepath):
        # put all the unqiue words in a  set
         givenwords = set()
@@ -45,7 +45,7 @@ class bag_of_words_model:
             words = file
 
         termfreq = {}
-    #get term frequency for the words in teh doc
+    #get term frequency for the words in the docucment 
         for phrase in words:
             termfreq[phrase] = termfreq.get(phrase, 0) + 1
         for phrase in termfreq:
@@ -55,6 +55,7 @@ class bag_of_words_model:
         for phrase in givenwords:
             tfvalue = termfreq.get(phrase, 0)  
             idfvalue = idf.get(phrase, 0)  
+            #Multiply the tf and idf value to get the final product of tf-idf
             v.append(tfvalue * idfvalue)  
 
         return v
@@ -70,6 +71,7 @@ class bag_of_words_model:
             for i in file_content:
                 weights.append(float(i))
         counter = 0
+        #FInd the weighted sum for the tf-idf vals
         for i in range(len(weights)):
             tf_idf_value = v[i]
             weight_value = weights[i]
